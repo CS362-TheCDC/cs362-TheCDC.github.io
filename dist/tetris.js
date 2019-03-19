@@ -23,7 +23,7 @@ var drawLine = function(ctx,p1,p2,color){
 
 
 //Draw game grids
-var drawGrids = function(el,gridSize,colCount,rowCount,color1,color2){
+var drawGrids = function(el,gridSize,gridSize2,colCount,rowCount,color1,color2){
 
 
 
@@ -45,19 +45,19 @@ var drawGrids = function(el,gridSize,colCount,rowCount,color1,color2){
 			drawLine(ctx,{x:x,y:0},{x:x,y:height},lineColor);
 	  };
 	  for (var i = 1; i < rowCount; i++) {
-			var y = gridSize*i+0.5;
+			var y = gridSize2*i+0.5;
 			drawLine(ctx,{x:0,y:y},{x:width,y:y},lineColor);
 	  };
 };
 
 //Draw box of shape (shape is the composition of boxes)
-var drawBox = function(ctx,color,x,y,gridSize){
+var drawBox = function(ctx,color,x,y,gridSize,gridSize2){
 			if (y<0){
 				return;
 			}
 
 			ctx.beginPath();
-			ctx.rect(x,y,gridSize,gridSize);
+			ctx.rect(x,y,gridSize,gridSize2);
 			ctx.fillStyle = color;
 			ctx.fill();
 			ctx.strokeStyle= boxBorderColor;
@@ -77,8 +77,10 @@ var tetrisCanvas = {
 		this.sceneContext = scene.getContext('2d');
 		this.previewContext = preview.getContext('2d');
 		this.gridSize = scene.width / consts.COLUMN_COUNT;
+		this.gridSize2 = scene.height / consts.ROW_COUNT;
 
 		this.previewGridSize = preview.width / consts.PREVIEW_COUNT;
+		this.previewGridSize2 = preview.height / consts.PREVIEW_COUNT;
 
 		this.drawScene();
 
@@ -95,7 +97,7 @@ var tetrisCanvas = {
 	//Draw game scene, grids
 	drawScene:function(){
 		this.clearScene();
-		drawGrids(this.scene,this.gridSize,
+		drawGrids(this.scene,this.gridSize,this.gridSize2,
 			consts.COLUMN_COUNT,consts.ROW_COUNT,
 			consts.SCENE_BG_START,consts.SCENE_BG_END);
 	},
@@ -105,14 +107,14 @@ var tetrisCanvas = {
 			var row = matrix[i];
 			for(var j = 0;j<row.length;j++){
 				if (row[j]!==0){
-					drawBox(this.sceneContext,row[j],j*this.gridSize,i*this.gridSize,this.gridSize);
+					drawBox(this.sceneContext,row[j],j*this.gridSize,i*this.gridSize2,this.gridSize, this.gridSize2);
 				}
 			}
 		}
 	},
 	//Draw preview data
 	drawPreview:function(){
-		drawGrids(this.preview,this.previewGridSize,
+		drawGrids(this.preview,this.previewGridSize,this.previewGridSize2,
 			consts.PREVIEW_COUNT,consts.PREVIEW_COUNT,
 			consts.PREVIEW_BG,consts.PREVIEW_BG);
 	},
@@ -123,13 +125,15 @@ var tetrisCanvas = {
 		}
 		var matrix = shape.matrix();
 		var gsize = this.gridSize;
+		var gsize2 = this.gridSize2;
+		
 		for(var i = 0;i<matrix.length;i++){
 			for(var j = 0;j<matrix[i].length;j++){
 				var value = matrix[i][j];
 				if (value === 1){
 					var x = gsize *(shape.x + j);
-					var y = gsize *(shape.y + i);
-					drawBox(this.sceneContext,shape.color,x,y,gsize);
+					var y = gsize2 *(shape.y + i);
+					drawBox(this.sceneContext,shape.color,x,y,gsize, gsize2);
 				}
 			}
 		}
@@ -141,16 +145,20 @@ var tetrisCanvas = {
 		}
 		this.clearPreview();
 		var matrix = shape.matrix();
-		var gsize = this.previewGridSize;
-		var startX = (this.preview.width - gsize*shape.getColumnCount()) / 2;
-		var startY = (this.preview.height - gsize*shape.getRowCount()) / 2;
+		
+		
+		var pgsize = this.previewGridSize;
+		var pgsize2 = this.previewGridSize2;
+		
+		var startX = (this.preview.width - pgsize*shape.getColumnCount()) / 2;
+		var startY = (this.preview.height - pgsize2*shape.getRowCount()) / 2;
 		for(var i = 0;i<matrix.length;i++){
 			for(var j = 0;j<matrix[i].length;j++){
 				var value = matrix[i][j];
 				if (value === 1){
-					var x = startX + gsize * j;
-					var y = startY + gsize * i;
-					drawBox(this.previewContext,shape.color,x,y,gsize);
+					var x = startX + pgsize * j;
+					var y = startY + pgsize2 * i;
+					drawBox(this.previewContext,shape.color,x,y,pgsize,pgsize2);
 				}
 			}
 		}
